@@ -10,8 +10,8 @@ public class Main
 	
 	public static void main(String[] args)
 	{
-		int xSize = 300;
-		int zSize = 300;
+		int xSize = 1000;
+		int zSize = 1000;
 		
 		frame = new Frame(xSize, zSize);
 		try

@@ -166,8 +166,16 @@ public class Maze
 		
 		for(int i = 0; i < xSize * zSize / 4; i++)
 		{
-//			if(walls.isEmpty())
-//				walls.add(new Wall(random, new Vector2(random.nextInt(xSize), random.nextInt(zSize)), Direction.random(random)));
+			if(walls.isEmpty())
+				break;
+			
+//			try
+//			{
+//				Thread.sleep(2);
+//			}catch(InterruptedException e)
+//			{
+//				e.printStackTrace();
+//			}
 			
 			for(Wall wall : new ArrayList<>(walls))
 			{
@@ -183,16 +191,23 @@ public class Maze
 				maze[wall.point.getX()][wall.point.getZ()] = false;
 				Main.frame.drawNode(wall.point, Color.CYAN);
 				
+				if(wall.lastRotation > 5 && random.nextInt(40) < wall.lastRotation / 2)
+				{
+					wall.direction = Direction.randomPerpendicular(wall.direction, random);
+					wall.lastRotation = 0;
+				}
+				
 				for(Direction dir : wall.direction.getPerpendiculars())
 				{
 					Vector2 nPoint = wall.point.shifted(dir);
 					if(nPoint.isOutOfBounds(0, 0, xSize, zSize) || done[nPoint.getX()][nPoint.getZ()])
 						continue;
-					if(random.nextInt(10) == 0)
+					if(wall.lastRotation > 3 && random.nextInt(40 - wall.lastRotation) < 2)
 					{
 						walls.add(new Wall(random, nPoint, dir));
+						wall.lastRotation = 0;
 					}
-					else
+					else if(random.nextInt(10) > 5)
 					{
 						done[nPoint.getX()][nPoint.getZ()] = true;
 						maze[nPoint.getX()][nPoint.getZ()] = true;
@@ -200,11 +215,6 @@ public class Maze
 					}
 				}
 				
-				if(wall.lastRotation > 5 && random.nextInt(40) < wall.lastRotation / 2)
-				{
-					wall.direction = Direction.randomPerpendicular(wall.direction, random);
-					wall.lastRotation = 0;
-				}
 				wall.lastRotation++;
 				
 				wall.point.add(wall.direction);
@@ -216,67 +226,6 @@ public class Maze
 		}
 		
 		return maze;
-		/*
-		int wallSize = random.nextInt(100)+30;
-		loop: for(int i = 0; i < wallSize; i++)
-		{
-			count++;
-			int max = 5;
-			Vector2 nextPoint = point.clone().add(dir1);
-			while(done.containsKey(nextPoint) || nextPoint.getX() >= xSize || nextPoint.getZ() >= zSize || nextPoint.getX() < 0 || nextPoint.getZ() < 0)
-			{
-				nextPoint = point.clone().add(dir1);
-				max--;
-				dir1 = new Vector2((int)Math.copySign(Math.abs(dir1.getX()) - 1, random.nextInt()), (int)Math.copySign(Math.abs(dir1.getZ()) - 1, random.nextInt()));
-				if(max <= 0)
-					break loop;
-			}
-			point.add(dir1);
-			done.put(point.clone(), true);
-			Main.frame.drawNode(point, Color.BLUE);
-
-			if(random.nextInt(14) == 0)
-			{
-				dir1 = new Vector2((int)Math.copySign(Math.abs(dir1.getX()) - 1, random.nextInt()), (int)Math.copySign(Math.abs(dir1.getZ()) - 1, random.nextInt()));
-			}
-			
-			if(random.nextInt(5) == 0)
-			{
-				try
-				{
-					done.putAll(generateMaze(xSize, zSize, done, point.clone(), new Vector2((int)Math.copySign(Math.abs(dir1.getX()) - 1, random.nextInt()), (int)Math.copySign(Math.abs(dir1.getZ()) - 1, random.nextInt())), random, generation + 1));
-				}catch(StackOverflowError | ConcurrentModificationException e)
-				{
-					break;
-				}
-			}
-			for(int x = -1; x < 2; x++)
-			{
-				for(int z = -1; z < 2; z++)
-				{
-					if(Math.abs(x + z) == 1)
-					{
-						Vector2 p = point.clone().add(new Vector2(x, z));
-						if(!done.containsKey(p) && (!p.equals(point.clone().add(dir1)) || i + 1 == wallSize) && random.nextInt(5) > 0)
-						{
-							Main.frame.drawNode(p, Color.CYAN);
-							done.put(p.clone(), false);
-						}
-					}
-				}
-			}
-
-			Graphics g = Main.frame.getImageGraphics();
-			g.setColor(Color.DARK_GRAY);
-			g.fillRect(0, 0, 30, 10);
-			g.setColor(Color.MAGENTA);
-			g.drawString(""+generation, 0, 10);
-			
-			if(count % 800 == 0)
-				Main.frame.print();
-		}
-		
-		return done;*/
 	}
 	
 	static class Wall
@@ -285,10 +234,11 @@ public class Maze
 		private Vector2 point;
 		private Direction direction;
 		private int lastRotation;
+		private int lastBranch;
 		
 		public Wall(Random random, Vector2 point, Direction direction)
 		{
-			this.remaining = random.nextInt(100)+30;
+			this.remaining = Integer.MAX_VALUE;//random.nextInt(100)+30;
 			this.point = point;
 			this.direction = direction;
 		}
