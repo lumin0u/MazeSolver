@@ -1,6 +1,7 @@
 package fr.lumin0u.mazesolver;
 
 import java.awt.Color;
+import java.util.Arrays;
 import java.util.Random;
 
 public class Main
@@ -10,6 +11,29 @@ public class Main
 	
 	public static void main(String[] args)
 	{
+		BinaryTree<Double> testTree = new BinaryTree<>();
+		
+		System.out.println(Arrays.toString(testTree.toArray()));
+		testTree.add(1.0);
+		System.out.println(Arrays.toString(testTree.toArray()));
+		testTree.add(2.0);
+		System.out.println(Arrays.toString(testTree.toArray()));
+		testTree.add(4.0);
+		System.out.println(Arrays.toString(testTree.toArray()));
+		testTree.add(3.0);
+		System.out.println(Arrays.toString(testTree.toArray()));
+		testTree.add(2.0);
+		System.out.println(Arrays.toString(testTree.toArray()));
+		testTree.remove(2.0);
+		System.out.println(Arrays.toString(testTree.toArray()));
+		testTree.remove(2.0);
+		System.out.println(Arrays.toString(testTree.toArray()));
+		testTree.remove(1.0);
+		System.out.println(Arrays.toString(testTree.toArray()));
+		System.out.println(testTree.min());
+		System.out.println(testTree.max());
+		
+		
 		int xSize = 1000;
 		int zSize = 1000;
 		
@@ -49,7 +73,7 @@ public class Main
 			
 			APath path = new APath(start, end, maze, frame);
 			
-			path.findPath(true);
+			path.findPath(false);
 		}
 	}
 }

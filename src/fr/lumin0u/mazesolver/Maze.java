@@ -143,7 +143,7 @@ public class Maze
 			{
 				for(int x = 0; x < xSize; x++)
 					for(int z = 0; z < zSize; z++)
-						maze[x][z] = random.nextInt(100) < 55;
+						maze[x][z] = random.nextInt(100) < 57;
 			}
 		}
 
@@ -164,11 +164,8 @@ public class Maze
 		
 		walls.add(new Wall(random, new Vector2(random.nextInt(xSize), random.nextInt(zSize)), Direction.random(random)));
 		
-		for(int i = 0; i < xSize * zSize / 4; i++)
+		for(int i = 0; !walls.isEmpty(); i++)
 		{
-			if(walls.isEmpty())
-				break;
-			
 //			try
 //			{
 //				Thread.sleep(2);
@@ -191,7 +188,7 @@ public class Maze
 				maze[wall.point.getX()][wall.point.getZ()] = false;
 				Main.frame.drawNode(wall.point, Color.CYAN);
 				
-				if(wall.lastRotation > 5 && random.nextInt(40) < wall.lastRotation / 2)
+				if(wall.lastRotation > 1 && random.nextInt(20) < wall.lastRotation / 2)
 				{
 					wall.direction = Direction.randomPerpendicular(wall.direction, random);
 					wall.lastRotation = 0;
@@ -202,7 +199,7 @@ public class Maze
 					Vector2 nPoint = wall.point.shifted(dir);
 					if(nPoint.isOutOfBounds(0, 0, xSize, zSize) || done[nPoint.getX()][nPoint.getZ()])
 						continue;
-					if(wall.lastRotation > 3 && random.nextInt(40 - wall.lastRotation) < 2)
+					if(wall.lastRotation > 3 && random.nextInt(20 - wall.lastRotation) < 2)
 					{
 						walls.add(new Wall(random, nPoint, dir));
 						wall.lastRotation = 0;
@@ -221,7 +218,7 @@ public class Maze
 			}
 			walls.removeIf(wall -> wall.remaining <= 0);
 			
-			if(count % 800 == 0)
+			if(i % 100 == 0)
 				Main.frame.print();
 		}
 		

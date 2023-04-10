@@ -2,6 +2,7 @@ package fr.lumin0u.mazesolver;
 
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -15,7 +16,7 @@ public class APath
 	private Maze maze;
 	private int gridSize;
 	private Frame frame;
-//	private int addedMore = 0;
+	private int addedMore = 0;
 	
 	public APath(Vector2 start, Vector2 end, Maze maze, Frame frame)
 	{
@@ -44,15 +45,15 @@ public class APath
 		if(!pathOk)
 		{
 			long startDate = System.nanoTime();
-//			addedMore++;
-//			if(addedMore % 3 == 0)
+			addedMore++;
+			if(addedMore % 3 == 0)
 				path.clear();
 			
 			if(path.isEmpty())
 				path.add(new ANode(start, null));
 			
 			List<ANode> closed = new ArrayList<>();
-			List<ANode> open = new ArrayList<>(path);
+			BinaryTree<ANode> open = new BinaryTree<>(path);
 			
 //			int time = 0;
 			
@@ -125,9 +126,7 @@ public class APath
 				maze.setNodeColor(start, new Color(0x0000FF));
 				maze.setNodeColor(end, new Color(0xFF0000));
 				
-				long drawTime = System.nanoTime();
 				frame.drawMaze(maze);
-				startDate += (System.nanoTime()-drawTime)/100;
 			}
 			
 			for(ANode point : open)
@@ -169,7 +168,7 @@ public class APath
 		return path;
 	}
 	
-	private boolean pathContains(Vector2 v, List<ANode> path)
+	private boolean pathContains(Vector2 v, Collection<ANode> path)
 	{
 		for(ANode point : path)
 			if(point.distance(v) < gridSize)
@@ -242,7 +241,7 @@ public class APath
 		}
 	}
 	
-	public class ANode extends Vector2
+	public class ANode extends Vector2 implements Comparable<ANode>
 	{
 		private ANode source;
 		private double gCost;
@@ -254,8 +253,6 @@ public class APath
 			this.source = source;
 			gCost = distance(start);
 			hCost = distance(end);
-			System.out.println(gCost);
-			System.out.println(hCost);
 		}
 		
 		public ANode(Vector2 v, ANode source)
@@ -288,7 +285,12 @@ public class APath
 		
 		public double getfCost()
 		{
-			return hCost + gCost * 1;
+			return hCost + gCost * 0.2;
+		}
+		
+		@Override
+		public int compareTo(ANode o) {
+			return Double.compare(getfCost(), o.getfCost());
 		}
 	}
 }
