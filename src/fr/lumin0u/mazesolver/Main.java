@@ -1,7 +1,6 @@
 package fr.lumin0u.mazesolver;
 
-import java.awt.Color;
-import java.util.Arrays;
+import java.awt.*;
 import java.util.Random;
 
 public class Main
@@ -11,27 +10,68 @@ public class Main
 	
 	public static void main(String[] args)
 	{
-		BinaryTree<Double> testTree = new BinaryTree<>();
+		BinaryTree<Integer> testTree = new BinaryTree<>();
 		
-		System.out.println(Arrays.toString(testTree.toArray()));
-		testTree.add(1.0);
-		System.out.println(Arrays.toString(testTree.toArray()));
-		testTree.add(2.0);
-		System.out.println(Arrays.toString(testTree.toArray()));
-		testTree.add(4.0);
-		System.out.println(Arrays.toString(testTree.toArray()));
-		testTree.add(3.0);
-		System.out.println(Arrays.toString(testTree.toArray()));
-		testTree.add(2.0);
-		System.out.println(Arrays.toString(testTree.toArray()));
-		testTree.remove(2.0);
-		System.out.println(Arrays.toString(testTree.toArray()));
-		testTree.remove(2.0);
-		System.out.println(Arrays.toString(testTree.toArray()));
-		testTree.remove(1.0);
-		System.out.println(Arrays.toString(testTree.toArray()));
-		System.out.println(testTree.min());
-		System.out.println(testTree.max());
+		Random r = new Random();
+		
+		for(int i = 0; i < 300; i++) {
+			
+			//System.out.println(testTree + "\n");
+			//int a = r.nextInt();
+			//System.out.println("add " + a);
+			testTree.add(i);
+		}
+		
+		long time = System.nanoTime();
+		
+		for(int i = 0; i < 300000; i++) {
+			
+			//System.out.println(testTree + "\n");
+			//int a = r.nextInt();
+			//System.out.println("contains " + a + " ? " + testTree.contains(a));
+			//System.out.println("remove " + a);
+			testTree.add(i*634869748);
+		}
+		
+		System.out.println("dur : " + ((double) (System.nanoTime() - time) / 1000000000));
+		
+		System.out.println(testTree.size());
+		System.out.println(testTree.height());
+		System.exit(0);
+		
+		System.out.println(testTree + "\n");
+		System.out.println("add 1");
+		testTree.add(1);
+		System.out.println(testTree + "\n");
+		System.out.println("add 2");
+		testTree.add(2);
+		System.out.println(testTree + "\n");
+		System.out.println("add 4");
+		testTree.add(4);
+		System.out.println(testTree + "\n");
+		System.out.println("add 3");
+		testTree.add(3);
+		System.out.println(testTree + "\n");
+		System.out.println("add 2");
+		testTree.add(2);
+		System.out.println(testTree + "\n");
+		System.out.println("rearrange");
+		testTree.rearrange();
+		System.out.println(testTree + "\n");
+		System.out.println("remove 3");
+		testTree.remove(3);
+		System.out.println(testTree + "\n");
+		System.out.println("remove 2");
+		testTree.remove(2);
+		System.out.println(testTree + "\n");
+		System.out.println("remove 2");
+		testTree.remove(2);
+		System.out.println(testTree + "\n");
+		System.out.println("remove 1");
+		testTree.remove(1);
+		System.out.println(testTree + "\n");
+		
+		System.exit(0);
 		
 		
 		int xSize = 1000;

@@ -5,19 +5,43 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Objects;
-import java.util.function.Function;
 
 public class BinaryTree<T extends Comparable<T>> implements Collection<T>
 {
+	private static final int MAX_HEIGHT = 1000;
+	
 	private Node root;
 	private int size;
+	private int height = -1;
 	
 	public BinaryTree()
 	{}
 	
-	public BinaryTree(Collection<T> other)
-	{
+	public BinaryTree(Collection<? extends T> other) {
 		addAll(other);
+	}
+	
+	public static <T extends Comparable<T>> BinaryTree<T> of(T[] array) {
+		if(array == null)
+			return new BinaryTree<>();
+		
+		BinaryTree<T> tree = new BinaryTree<>();
+		tree.root = tree.nodeFromArray(array, 0, array.length);
+		tree.size = array.length;
+		return tree;
+	}
+	
+	private Node nodeFromArray(Object[] array, int a, int b) {
+		if(a > b-1)
+			return null;
+		
+		int m = (a+b) / 2;
+		return new Node((T) array[m], nodeFromArray(array, a, m), nodeFromArray(array, m + 1, b));
+	}
+	
+	public void rearrange() {
+		root = nodeFromArray(toArray(), 0, size);
+		height = size == 0 ? -1 : Math.getExponent(size);
 	}
 	
 	@Override
@@ -32,13 +56,14 @@ public class BinaryTree<T extends Comparable<T>> implements Collection<T>
 	
 	@Override
 	public boolean contains(Object o) {
-		Node node = root;
-		while(node != null)
-		{
-			if(node.value.equals(o))
-				return true;
-			node = node.value.compareTo((T) o) > 0 ? node.left : node.right;
-		}
+		try {
+			Node node = root;
+			while(node != null) {
+				if(node.value.equals(o))
+					return true;
+				node = node.value.compareTo((T) o) > 0 ? node.left : node.right;
+			}
+		} catch(ClassCastException ignore) {}
 		return false;
 	}
 	
@@ -77,29 +102,35 @@ public class BinaryTree<T extends Comparable<T>> implements Collection<T>
 		{
 			root = new Node(t, null, null);
 			size = 1;
+			height = 0;
 			return true;
+		}
+		
+		if(height >= MAX_HEIGHT) {
+			rearrange();
 		}
 		
 		Node node = root;
 		
+		int depth = 0;
+		
 		while(true)
 		{
-			if(node.value.compareTo(t) >= 0)
-			{
-				if(node.left == null)
-				{
+			depth++;
+			if(node.value.compareTo(t) >= 0) {
+				if(node.left == null) {
 					node.left = new Node(t, null, null);
 					size++;
+					height = Math.max(depth, height);
 					return true;
 				}
 				node = node.left;
 			}
-			else
-			{
-				if(node.right == null)
-				{
+			else {
+				if(node.right == null) {
 					node.right = new Node(t, null, null);
 					size++;
+					height = Math.max(depth, height);
 					return true;
 				}
 				node = node.right;
@@ -108,76 +139,34 @@ public class BinaryTree<T extends Comparable<T>> implements Collection<T>
 	}
 	
 	@Override
-	public boolean remove(Object o) {
-		if(root == null || !root.value.getClass().isInstance(o)) {
+	public boolean remove(Object a) {
+		if(root == null || !(a instanceof Comparable<?> obj)) {
 			return false;
 		}
 		
-		Node node = root;
-		Function<Node, Node> replaceNode = n -> root = n;
+		boolean removed = false;
 		
-		while(true) {
-			if(node.value.equals(o)) {
-				Node right = node.right;
-				Node left = node.left;
-				Node newsParent;
-				
-				if(node.left != null) {
-					// get the rightest node of the left branch
-					newsParent = node.left.maxsParent(node);
-					
-					if(newsParent != node) {
-						// move it to the top
-						node = replaceNode.apply(newsParent.right);
-						// replace its position by its own left branch
-						newsParent.right = newsParent.right.left;
-						
-						node.right = right;
-						node.left = left;
-					}
-					else {
-						// woops
-						node = replaceNode.apply(node.left);
-					}
-				}
-				else if(node.right != null) {
-					// same but with right
-					newsParent = node.right.minsParent(node);
-					
-					if(newsParent != node) {
-						node = replaceNode.apply(newsParent.left);
-						newsParent.left = newsParent.left.right;
-						
-						node.right = right;
-						node.left = left;
-					}
-					else {
-						node = replaceNode.apply(node.right);
-					}
-				}
-				else {
-					// now there's nothing under this node, good news
-					node = replaceNode.apply(null);
-				}
-				
-				size--;
-				return true;
+		if(root.value.equals(obj)) {
+			Node prevLeft = root.left;
+			Node prevRight = root.right;
+			root = root.extractReplaceNode();
+			if(root != null) {
+				if(root != prevLeft)
+					root.left = prevLeft;
+				if(root != prevRight)
+					root.right = prevRight;
 			}
-			
-			Node finalNode = node;
-			if(node.value.compareTo((T) o) < 0) {
-				replaceNode = n -> finalNode.right = n;
-				node = node.right;
-			}
-			else {
-				replaceNode = n -> finalNode.left = n;
-				node = node.left;
-			}
-			
-			if(node == null) {
-				return false;
-			}
+			removed = true;
 		}
+		else {
+			try {
+				removed = root.remove(obj);
+			} catch(ClassCastException ignore) {}
+		}
+		
+		if(removed)
+			size--;
+		return removed;
 	}
 	
 	@Override
@@ -224,6 +213,15 @@ public class BinaryTree<T extends Comparable<T>> implements Collection<T>
 		return root.max().value;
 	}
 	
+	public int height() {
+		return height;
+	}
+	
+	@Override
+	public String toString() {
+		return root == null ? "{}" : root.toString();
+	}
+	
 	private class Node
 	{
 		final T value;
@@ -260,6 +258,98 @@ public class BinaryTree<T extends Comparable<T>> implements Collection<T>
 		
 		private Node maxsParent(Node parent) {
 			return right == null ? parent : right.maxsParent(this);
+		}
+		
+		private int height() {
+			return 1 + Math.max(left == null ? -1 : left.height(), right == null ? -1 : right.height());
+		}
+		
+		private void add(T obj) {
+			if(obj.compareTo(value) > 0) {
+				if(right == null)
+					right = new Node(obj, null, null);
+				else
+					right.add(obj);
+			}
+			else {
+				if(left == null)
+					left = new Node(obj, null, null);
+				else
+					left.add(obj);
+			}
+		}
+		
+		private <R> boolean remove(Comparable<R> obj) {
+			// dangerous
+			if(obj.compareTo((R) value) < 0) {
+				if(left == null) {
+					return false;
+				}
+				if(left.value.equals(obj)) {
+					Node prevLeft = left.left;
+					Node prevRight = left.right;
+					left = left.extractReplaceNode();
+					if(left != null) {
+						if(left != prevLeft)
+							left.left = prevLeft;
+						if(left != prevRight)
+							left.right = prevRight;
+					}
+					return true;
+				}
+				
+				return left.remove(obj);
+			}
+			else {
+				if(right == null) {
+					return false;
+				}
+				if(right.value.equals(obj)) {
+					Node prevLeft = right.left;
+					Node prevRight = right.right;
+					right = right.extractReplaceNode();
+					if(right != null) {
+						if(right != prevLeft)
+							right.left = prevLeft;
+						if(right != prevRight)
+							right.right = prevRight;
+					}
+					return true;
+				}
+				
+				return right.remove(obj);
+			}
+		}
+		
+		private Node extractReplaceNode() {
+			if(left != null) {
+				Node p = left.maxsParent(this);
+				if(p != this) {
+					Node m = p.right;
+					p.right = m.left;
+					return m;
+				}
+				else {
+					return left;
+				}
+			}
+			if(right != null) {
+				Node p = right.minsParent(this);
+				if(p != this) {
+					Node m = p.left;
+					p.left = m.right;
+					return m;
+				}
+				else {
+					return right;
+				}
+			}
+			return null;
+		}
+		
+		@Override
+		public String toString() {
+			return "{" + (left == null ? "  " : left == this ? "me " : left.toString() + " ") + value + (right == null ? "  " : right == this ? " me" : " " + right.toString()) + "}";
 		}
 	}
 	
